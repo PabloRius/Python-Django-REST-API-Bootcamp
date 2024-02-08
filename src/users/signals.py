@@ -4,8 +4,22 @@ from django.dispatch import receiver
 
 from .models import Profile
 
+# When a user is created, a profile with the same params is also created
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+
+
+@receiver(pre_save, sender=User)
+def set_username(sender, instance, created, **kwargs):
+    if not instance.username:
+        username = f'{instance.first_name}_{instance.last_name}'.lower()
+        counter = 1
+        while User.objects.filter(username=username):
+            username = f'{instance.first_name}_{
+                instance.last_name}_{counter}'.lower()
+            counter += 1
+        instance.username = username
